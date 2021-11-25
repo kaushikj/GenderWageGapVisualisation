@@ -1,0 +1,8 @@
+Add Question 1: What disparity is seen at seniority levels between average salaries of male and female in different departments?
+Time to display: 1:33:50-1:38:50
+Add Question 2: How is education of male and female impacting the salaries at different profiles?
+Time to display: 2:13:10-2:16:10
+Add Question 3: Can we see patterns to predict salary for future?
+Time to display: 2:38:40-2:43:90
+
+Add pic for duration: 2:16:10-2:21:73
