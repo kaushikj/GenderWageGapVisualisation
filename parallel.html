@@ -13,9 +13,14 @@
         shape-rendering: crispEdges;
       }
 
-      .foreground path {
+      .foreground-female path {
         fill: none;
         stroke: steelblue;
+      }
+
+      .foreground-male path {
+        fill: none;
+        stroke: rgb(27, 84, 1);
       }
 
       .brush .extent {
@@ -53,13 +58,10 @@
       var line = d3.svg.line(),
         axis = d3.svg.axis().orient("left"),
         background,
-        foreground;
+        foregroundFemale,
+        foregroundMale;
 
-      var color = d3.scale
-        .ordinal()
-        .domain(["Male", "Female"])
-        .range(["#440154ff", "#fde725ff"]);
-
+      const educations = ["High School", "College", "Masters", "PhD"];
       var svg = d3
         .select("body")
         .append("svg")
@@ -73,12 +75,14 @@
           return {
             Gender: dataCase.Gender,
             Education: dataCase.Education,
-            Department: dataCase.Dept,
+            //Department: dataCase.Dept,
             Performance: dataCase.PerfEval,
             Salary: parseInt(dataCase["BasePay"]) + parseInt(dataCase["Bonus"]),
           };
         });
-        console.log(data);
+
+        const femaleData = data.filter((d) => d.Gender == "Female");
+        const maleData = data.filter((d) => d.Gender == "Male");
 
         // Extract the list of dimensions and create a scale for each.
         x.domain(
@@ -95,14 +99,32 @@
                 )
                 .range([height, 0]);
             } else {
-              y[d] = d3.scale
-                .ordinal()
-                .domain(
-                  data.map(function (p) {
-                    return p[d];
-                  })
-                )
-                .rangePoints([height, 0]);
+              if (d === "Education") {
+                y[d] = d3.scale
+                  .ordinal()
+                  .domain(
+                    data
+                      .map(function (p) {
+                        return p[d];
+                      })
+                      .sort(function (a, b) {
+                        console.log(a);
+                        return educations.indexOf(a) - educations.indexOf(b);
+                      })
+                  )
+                  .rangePoints([height, 0]);
+              } else {
+                y[d] = d3.scale
+                  .ordinal()
+                  .domain(
+                    data
+                      .map(function (p) {
+                        return p[d];
+                      })
+                      .sort()
+                  )
+                  .rangePoints([height, 0]);
+              }
             }
             return true;
           }))
@@ -119,11 +141,20 @@
           .attr("d", path);
 
         // Add blue foreground lines for focus.
-        foreground = svg
+        foregroundFemale = svg
           .append("g")
-          .attr("class", "foreground")
+          .attr("class", "foreground-female")
           .selectAll("path")
-          .data(data)
+          .data(femaleData)
+          .enter()
+          .append("path")
+          .attr("d", path);
+
+        foregroundMale = svg
+          .append("g")
+          .attr("class", "foreground-male")
+          .selectAll("path")
+          .data(maleData)
           .enter()
           .append("path")
           .attr("d", path);
@@ -150,7 +181,8 @@
               })
               .on("drag", function (d) {
                 dragging[d] = Math.min(width, Math.max(0, d3.event.x));
-                foreground.attr("d", path);
+                foregroundFemale.attr("d", path);
+                foregroundMale.attr("d", path);
                 dimensions.sort(function (a, b) {
                   return position(a) - position(b);
                 });
@@ -165,7 +197,8 @@
                   "transform",
                   "translate(" + x(d) + ")"
                 );
-                transition(foreground).attr("d", path);
+                transition(foregroundFemale).attr("d", path);
+                transition(foregroundMale).attr("d", path);
                 background
                   .attr("d", path)
                   .transition()
@@ -235,7 +268,14 @@
           extents = actives.map(function (p) {
             return y[p].brush.extent();
           });
-        foreground.style("display", function (d) {
+        foregroundFemale.style("display", function (d) {
+          return actives.every(function (p, i) {
+            return extents[i][0] <= d[p] && d[p] <= extents[i][1];
+          })
+            ? null
+            : "none";
+        });
+        foregroundMale.style("display", function (d) {
           return actives.every(function (p, i) {
             return extents[i][0] <= d[p] && d[p] <= extents[i][1];
           })
