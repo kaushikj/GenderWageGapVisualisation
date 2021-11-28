@@ -18,7 +18,7 @@ function FuncView2(){
 	}
   console.log(snlevel)
 	//Read the data
-	d3.csv("Glassdoor Gender Pay Gap.csv", function(data) {
+	d3.csv("Glassdoor Gender Pay Gap_v2.csv", function(data) {
 		//ShowGender(data);
 		ShowEducation(data,snlevel);
 	})
